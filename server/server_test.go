@@ -10,7 +10,8 @@ import (
 
 func TestNewServer(t *testing.T) {
 	cfg := &Config{
-		Port: ":3000",
+		HTTPPort: ":3000",
+		WSPort:   ":4000",
 		ProducerFunc: func() storage.Storage {
 			return storage.NewMemoryStorage()
 		},
@@ -28,7 +29,8 @@ func TestNewServer(t *testing.T) {
 
 func TestPublish(t *testing.T) {
 	cfg := &Config{
-		Port: ":3000",
+		HTTPPort: ":3000",
+		WSPort:   ":4000",
 		ProducerFunc: func() storage.Storage {
 			return storage.NewMemoryStorage()
 		},

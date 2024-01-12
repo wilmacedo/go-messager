@@ -22,14 +22,15 @@ func NewHTTPProducer(port string, message chan Message) *HTTPProducer {
 func (p *HTTPProducer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	path := strings.TrimPrefix(r.URL.Path, "/")
 
-	if r.Method == "GET" {
-		// commit
-	}
-
 	if r.Method == "POST" {
 		params := strings.Split(path, "/")
 		if len(params) != 2 {
 			slog.Error("invalid publish route")
+			return
+		}
+
+		if params[0] != "publish" {
+			slog.Error("invalid action")
 			return
 		}
 

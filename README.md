@@ -1,5 +1,5 @@
 # Go Messager
-The message queue builded only with standard libraries of go
+The message queue builded only with standard libraries (and some others :D)
 
 ## Usage
 To run the application, simple run the following command:
@@ -12,6 +12,7 @@ To run the application, simple run the following command:
 ## Features
 * RWMutex to ensure the safety concurrency
 * Multi-Thread for each producer/consumer with concurrency
+* Fast consumer message serialization
 
 ## Protocols
 

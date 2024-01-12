@@ -31,19 +31,22 @@ func NewServer(cfg *Config) (*Server, error) {
 	message := make(chan transport.Message)
 	peer := make(chan transport.Peer)
 
-	return &Server{
+	s := &Server{
 		Config: cfg,
 		topics: make(map[string]storage.Storage),
 		producers: []transport.Producer{
 			transport.NewHTTPProducer(cfg.HTTPPort, message),
 		},
-		consumers: []transport.Consumer{
-			transport.NewWSConsumer(cfg.WSPort, peer),
-		},
 		peer:    peer,
 		message: message,
 		exit:    make(chan bool),
-	}, nil
+	}
+
+	s.consumers = []transport.Consumer{
+		transport.NewWSConsumer(cfg.WSPort, peer, s),
+	}
+
+	return s, nil
 }
 
 func (s *Server) Start() {
@@ -85,13 +88,41 @@ func (s *Server) loop() {
 	}
 }
 
-func (s *Server) publish(message transport.Message) error {
-	if _, ok := s.topics[message.Topic]; !ok {
-		s.topics[message.Topic] = s.ProducerFunc()
-		slog.Info("created new topic", "name", message.Topic)
+func (s *Server) GetStoreByTopic(topic string) storage.Storage {
+	if _, ok := s.topics[topic]; !ok {
+		s.topics[topic] = s.ProducerFunc()
+		slog.Info("created new topic", "name", topic)
 	}
 
-	store := s.topics[message.Topic]
+	return s.topics[topic]
+}
+
+func (s *Server) publish(message transport.Message) error {
+	store := s.GetStoreByTopic(message.Topic)
 
 	return store.Push(message.Data)
+}
+
+func (s *Server) GetTopics() map[string]storage.Storage {
+	return s.topics
+}
+
+func (s *Server) AddPeerToTopic(p transport.Peer, topics []string) error {
+	for _, topic := range topics {
+		store := s.GetStoreByTopic(topic)
+
+		size := store.Size()
+		for i := 0; i < size; i++ {
+			b, err := store.Fetch(uint(i))
+			if err != nil {
+				slog.Error("offset not founded in topic store", "offset", i)
+				continue
+			}
+
+			fmt.Println(string(b))
+		}
+	}
+
+	slog.Info("adding new peer to topics", "topics", topics)
+	return nil
 }

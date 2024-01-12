@@ -8,6 +8,7 @@ import (
 type Storage interface {
 	Push([]byte) error
 	Fetch(uint) ([]byte, error)
+	Size() int
 }
 
 type StorageProducerFunc func() Storage
@@ -51,4 +52,8 @@ func (s *MemoryStorage) Fetch(offset uint) ([]byte, error) {
 	}
 
 	return fetch, nil
+}
+
+func (s *MemoryStorage) Size() int {
+	return len(s.data)
 }

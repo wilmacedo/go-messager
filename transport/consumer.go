@@ -10,15 +10,22 @@ import (
 
 var upgrader = websocket.Upgrader{}
 
-type WSConsumer struct {
-	Port string
-	Peer chan<- Peer
+type Hook struct {
+	Action string   `json:"action"`
+	Topics []string `json:"topics"`
 }
 
-func NewWSConsumer(port string, peer chan<- Peer) *WSConsumer {
+type WSConsumer struct {
+	Port   string
+	Peer   chan<- Peer
+	Server TransportServer
+}
+
+func NewWSConsumer(port string, peer chan<- Peer, server TransportServer) *WSConsumer {
 	return &WSConsumer{
-		Port: port,
-		Peer: peer,
+		Port:   port,
+		Peer:   peer,
+		Server: server,
 	}
 }
 
@@ -29,7 +36,7 @@ func (ws *WSConsumer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	p := NewWSPeer(conn)
+	p := NewWSPeer(conn, ws.Server)
 	ws.Peer <- p
 }
 

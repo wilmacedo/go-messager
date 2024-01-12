@@ -2,5 +2,8 @@
 The message queue builded only with standard libraries of go
 
 ## Strategy
-* Underlying Storage
+* InMemory Storage
 * Server Protocol (HTTP, TCP)
+
+## Features
+* RWMutex to ensure the safety concurrency

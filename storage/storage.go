@@ -1,0 +1,46 @@
+package storage
+
+import (
+	"fmt"
+	"sync"
+)
+
+type Storage interface {
+	Push([]byte) error
+	Fetch(uint) ([]byte, error)
+}
+
+type MemoryStorage struct {
+	mu   sync.RWMutex
+	data [][]byte
+}
+
+func NewMemoryStorage() *MemoryStorage {
+	return &MemoryStorage{
+		data: make([][]byte, 0),
+	}
+}
+
+func (s *MemoryStorage) Push(b []byte) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	s.data = append(s.data, b)
+	return nil
+}
+
+func (s *MemoryStorage) Fetch(offset uint) ([]byte, error) {
+	s.mu.RLock()
+	defer s.mu.RUnlock()
+
+	if len(s.data) < int(offset) {
+		return nil, fmt.Errorf("offset (%d) out of range", offset)
+	}
+
+	fetch := s.data[offset]
+	if fetch == nil {
+		return nil, fmt.Errorf("missing bytes in offset (%d)", offset)
+	}
+
+	return fetch, nil
+}

@@ -3,3 +3,6 @@ run: build
 
 build:
 	@go build -o bin/go-messager
+
+test:
+	@go test ./...

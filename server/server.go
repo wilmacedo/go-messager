@@ -17,31 +17,46 @@ type Server struct {
 	topics    map[string]storage.Storage
 	consumers []transport.Consumer
 	producers []transport.Producer
-	exit      chan struct{}
+
+	message chan transport.Message
+	exit    chan bool
 }
 
 func NewServer(cfg *Config) (*Server, error) {
+	message := make(chan transport.Message)
+
 	return &Server{
 		Config: cfg,
 		topics: make(map[string]storage.Storage),
-		exit:   make(chan struct{}),
+		producers: []transport.Producer{
+			transport.NewHTTPProducer(cfg.Port, message),
+		},
+		message: message,
+		exit:    make(chan bool),
 	}, nil
 }
 
 func (s *Server) Start() {
-	for _, consumer := range s.consumers {
-		if err := consumer.Start(); err != nil {
-			fmt.Printf("%v\n", err)
-			continue
-		}
-	}
-
 	for _, producer := range s.producers {
-		if err := producer.Start(); err != nil {
-			fmt.Printf("%v\n", err)
-			continue
-		}
+		go func(p transport.Producer) {
+			if err := p.Start(); err != nil {
+				fmt.Printf("%v\n", err)
+
+			}
+		}(producer)
 	}
 
-	<-s.exit
+	s.loop()
+}
+
+func (s *Server) loop() {
+	for {
+		select {
+		case message := <-s.message:
+			fmt.Printf("produced: %s\n", message)
+		case <-s.exit:
+			fmt.Println("quitting server...")
+			return
+		}
+	}
 }

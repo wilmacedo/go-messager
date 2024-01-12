@@ -10,6 +10,8 @@ type Storage interface {
 	Fetch(uint) ([]byte, error)
 }
 
+type StorageProducerFunc func() Storage
+
 type MemoryStorage struct {
 	mu   sync.RWMutex
 	data [][]byte

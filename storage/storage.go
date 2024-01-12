@@ -33,7 +33,13 @@ func (s *MemoryStorage) Fetch(offset uint) ([]byte, error) {
 	s.mu.RLock()
 	defer s.mu.RUnlock()
 
-	if len(s.data) < int(offset) {
+	size := len(s.data)
+
+	if size == 0 {
+		return nil, fmt.Errorf("storage is empty")
+	}
+
+	if size-1 < int(offset) {
 		return nil, fmt.Errorf("offset (%d) out of range", offset)
 	}
 

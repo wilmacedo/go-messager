@@ -1,6 +1,7 @@
 package transport
 
 import (
+	"io"
 	"log/slog"
 	"net/http"
 	"strings"
@@ -32,10 +33,17 @@ func (p *HTTPProducer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		data, err := io.ReadAll(r.Body)
+		defer r.Body.Close()
+		if err != nil {
+			slog.Error("error reading request body: %v", err)
+			return
+		}
+
 		topic := params[1]
 		p.message <- Message{
 			Topic: topic,
-			Data:  []byte("hello world"),
+			Data:  data,
 		}
 	}
 }

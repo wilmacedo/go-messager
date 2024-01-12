@@ -1,7 +1,11 @@
 # Go Messager
 The message queue builded only with standard libraries of go
 
-## Strategy
+## Usage
+To run the application, simple run the following command:
+``` make ```
+
+## Strategies
 * InMemory Storage
 * Multi protocols
 
@@ -12,4 +16,4 @@ The message queue builded only with standard libraries of go
 ## Protocols
 
 - [x] HTTP
-- [] TPC
+- [ ] TPC

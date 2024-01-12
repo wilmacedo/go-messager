@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/wilmacedo/go-messager/storage"
 	"github.com/wilmacedo/go-messager/transport"
@@ -40,8 +41,7 @@ func (s *Server) Start() {
 	for _, producer := range s.producers {
 		go func(p transport.Producer) {
 			if err := p.Start(); err != nil {
-				fmt.Printf("%v\n", err)
-
+				slog.Error("%v", err)
 			}
 		}(producer)
 	}
@@ -53,10 +53,25 @@ func (s *Server) loop() {
 	for {
 		select {
 		case message := <-s.message:
-			fmt.Printf("produced: %s\n", message)
+			if err := s.publish(message); err != nil {
+				slog.Error("failed to publish topic", err)
+			} else {
+				slog.Info("new message produced")
+			}
 		case <-s.exit:
 			fmt.Println("quitting server...")
 			return
 		}
 	}
+}
+
+func (s *Server) publish(message transport.Message) error {
+	if _, ok := s.topics[message.Topic]; !ok {
+		s.topics[message.Topic] = s.ProducerFunc()
+		slog.Info("created new topic", "name", message.Topic)
+	}
+
+	store := s.topics[message.Topic]
+
+	return store.Push(message.Data)
 }

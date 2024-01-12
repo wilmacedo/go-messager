@@ -8,3 +8,8 @@ The message queue builded only with standard libraries of go
 ## Features
 * RWMutex to ensure the safety concurrency
 * Multi-Thread for each producer/consumer with concurrency
+
+## Protocols
+
+- [x] HTTP
+- [] TPC

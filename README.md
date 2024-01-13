@@ -14,7 +14,12 @@ make up-consumer
 
 To change the topic or message, run the following command:
 ```bash
-go run cmd/producer/up.go --topic=new_topic --action=publish
+go run cmd/producer/up.go --topic=new_topic --action=subscribe
+```
+
+To publish data in a topic, run the following command:
+```bash
+curl -X POST http://localhost:3000/publish/topic --data-binary 'any data'
 ```
 
 ## Strategies

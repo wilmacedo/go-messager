@@ -9,6 +9,7 @@ import (
 )
 
 func main() {
+	topic := flag.String("topic", "test", "topic to execute action")
 	action := flag.String("action", "subscribe", "peer action")
 	flag.Parse()
 
@@ -19,7 +20,7 @@ func main() {
 
 	h := transport.Hook{
 		Action: *action,
-		Topics: []string{"test"},
+		Topics: []string{*topic},
 	}
 
 	data, err := sonic.Marshal(h)
@@ -28,6 +29,7 @@ func main() {
 	}
 
 	conn.WriteMessage(websocket.BinaryMessage, data)
+	// conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 
 	ch := make(chan any)
 	<-ch

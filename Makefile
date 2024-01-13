@@ -6,3 +6,6 @@ build:
 
 test:
 	@go test ./...
+
+up-consumer:
+	@go run cmd/consumer/up.go

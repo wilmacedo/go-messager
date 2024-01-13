@@ -13,6 +13,7 @@ To run the application, simple run the following command:
 * RWMutex to ensure the safety concurrency
 * Multi-Thread for each producer/consumer with concurrency
 * Fast consumer message serialization
+* Up to $62^{62}$ consumers at same time
 
 ## Roadmap
 - [ ] Authentication to publish/commit and listen

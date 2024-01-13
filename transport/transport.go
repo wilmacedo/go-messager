@@ -10,6 +10,7 @@ type Message struct {
 type TransportServer interface {
 	GetTopics() map[string]storage.Storage
 	AddPeerToTopic(p Peer, topics []string) error
+	RemovePeer(p Peer) error
 	GetStoreByTopic(topic string) storage.Storage
 }
 

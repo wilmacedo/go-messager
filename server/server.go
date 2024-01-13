@@ -19,7 +19,7 @@ type Server struct {
 
 	topics    map[string]storage.Storage
 	producers []transport.Producer
-	conns     []transport.Peer
+	conns     map[string]transport.Peer
 	consumers []transport.Consumer
 
 	peer    chan transport.Peer
@@ -34,6 +34,7 @@ func NewServer(cfg *Config) (*Server, error) {
 	s := &Server{
 		Config: cfg,
 		topics: make(map[string]storage.Storage),
+		conns:  make(map[string]transport.Peer),
 		producers: []transport.Producer{
 			transport.NewHTTPProducer(cfg.HTTPPort, message),
 		},
@@ -80,7 +81,7 @@ func (s *Server) loop() {
 			}
 		case peer := <-s.peer:
 			slog.Info("new peer connected")
-			s.conns = append(s.conns, peer)
+			s.conns[peer.GetID()] = peer
 		case <-s.exit:
 			fmt.Println("quitting server...")
 			return
@@ -107,6 +108,18 @@ func (s *Server) GetTopics() map[string]storage.Storage {
 	return s.topics
 }
 
+func (s *Server) RemovePeer(p transport.Peer) error {
+	if _, ok := s.conns[p.GetID()]; !ok {
+		return fmt.Errorf("peer with id (%s) not found in connection list", p.GetID())
+	}
+
+	delete(s.conns, p.GetID())
+
+	fmt.Println(s.conns)
+
+	return nil
+}
+
 func (s *Server) AddPeerToTopic(p transport.Peer, topics []string) error {
 	for _, topic := range topics {
 		store := s.GetStoreByTopic(topic)
@@ -123,6 +136,6 @@ func (s *Server) AddPeerToTopic(p transport.Peer, topics []string) error {
 		}
 	}
 
-	slog.Info("adding new peer to topics", "topics", topics)
+	slog.Info("adding new peer to", "topics", topics)
 	return nil
 }

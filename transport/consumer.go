@@ -36,7 +36,12 @@ func (ws *WSConsumer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	p := NewWSPeer(conn, ws.Server)
+	p, err := NewWSPeer(conn, ws.Server)
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+
 	ws.Peer <- p
 }
 

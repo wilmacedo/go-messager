@@ -106,25 +106,50 @@ func (s *Server) publish(message transport.Message) error {
 		return err
 	}
 
-	start := time.Now()
 	var wg sync.WaitGroup
+	var peers []transport.Peer
+
+	start := time.Now()
+	counts := make(chan [2]int, len(s.conns))
+
 	for _, peer := range s.conns {
+		for _, topic := range peer.GetTopics() {
+			if topic == message.Topic {
+				peers = append(peers, peer)
+			}
+		}
+	}
+
+	for _, peer := range peers {
 		wg.Add(1)
 
-		go func(msg transport.Message, p transport.Peer) {
+		go func(msg transport.Message, p transport.Peer, c chan [2]int) {
 			// TODO: Add retry strategy
 			if err := p.Send(msg.Data); err != nil {
+				// TODO: Add analytics tracer
+				c <- [2]int{0, 1}
 				slog.Error("failed to send message to peer", "peer", p.GetID())
 			}
 
+			c <- [2]int{1, 0}
 			wg.Done()
-		}(message, peer)
+		}(message, peer, counts)
 	}
 
-	wg.Wait()
-	s.ProducerFunc().Pop()
+	go func() {
+		wg.Wait()
+		close(counts)
+	}()
 
+	var total [2]int
+	for count := range counts {
+		total[0] += count[0]
+		total[1] += count[1]
+	}
+
+	store.Pop()
 	slog.Info("message sended to peers", "took", time.Since(start))
+	slog.Info("message status", "success", total[0], "failed", total[1])
 
 	return nil
 }
@@ -144,6 +169,7 @@ func (s *Server) RemovePeer(p transport.Peer) error {
 }
 
 func (s *Server) AddPeerToTopic(p transport.Peer, topics []string) error {
+	p.AddTopics(topics)
 	for _, topic := range topics {
 		s.GetStoreByTopic(topic)
 	}

@@ -11,12 +11,15 @@ import (
 type Peer interface {
 	Send(b []byte) error
 	GetID() string
+	AddTopics(topics []string)
+	GetTopics() []string
 }
 
 type WSPeer struct {
 	conn   *websocket.Conn
 	server TransportServer
 	id     string
+	topics []string
 }
 
 func NewWSPeer(conn *websocket.Conn, server TransportServer) (*WSPeer, error) {
@@ -29,6 +32,7 @@ func NewWSPeer(conn *websocket.Conn, server TransportServer) (*WSPeer, error) {
 		conn:   conn,
 		server: server,
 		id:     id,
+		topics: make([]string, 0),
 	}
 
 	go p.loop()
@@ -81,4 +85,23 @@ func (p *WSPeer) Send(b []byte) error {
 
 func (p *WSPeer) GetID() string {
 	return p.id
+}
+
+func (p *WSPeer) AddTopics(topics []string) {
+	for _, topic := range topics {
+		has := false
+		for _, t := range p.topics {
+			if t == topic {
+				has = true
+			}
+		}
+
+		if !has {
+			p.topics = append(p.topics, topic)
+		}
+	}
+}
+
+func (p *WSPeer) GetTopics() []string {
+	return p.topics
 }

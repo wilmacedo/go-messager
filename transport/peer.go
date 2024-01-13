@@ -46,7 +46,6 @@ func (p *WSPeer) handleHook(h Hook) error {
 
 func (p *WSPeer) loop() {
 	for {
-		// TODO: Add retry strategy
 		_, incoming, err := p.conn.ReadMessage()
 		if err != nil {
 			if !websocket.IsUnexpectedCloseError(err, websocket.CloseAbnormalClosure, websocket.CloseNormalClosure) {

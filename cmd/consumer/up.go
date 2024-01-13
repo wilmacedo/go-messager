@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 
 	"github.com/bytedance/sonic"
 	"github.com/gorilla/websocket"
@@ -31,6 +32,12 @@ func main() {
 	conn.WriteMessage(websocket.BinaryMessage, data)
 	// conn.WriteMessage(websocket.CloseMessage, websocket.FormatCloseMessage(websocket.CloseNormalClosure, ""))
 
-	ch := make(chan any)
-	<-ch
+	for {
+		_, data, err := conn.ReadMessage()
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Printf("received data: %s\n", string(data))
+	}
 }

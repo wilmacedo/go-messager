@@ -8,7 +8,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-var upgrader = websocket.Upgrader{}
+var upgrader websocket.Upgrader
 
 type Hook struct {
 	Action string   `json:"action"`

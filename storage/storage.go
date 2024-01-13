@@ -7,6 +7,7 @@ import (
 
 type Storage interface {
 	Push([]byte) error
+	Pop() error
 	Fetch(uint) ([]byte, error)
 	Size() int
 }
@@ -29,6 +30,18 @@ func (s *MemoryStorage) Push(b []byte) error {
 	defer s.mu.Unlock()
 
 	s.data = append(s.data, b)
+	return nil
+}
+
+func (s *MemoryStorage) Pop() error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+
+	if len(s.data) == 0 {
+		return nil // return empty error?
+	}
+
+	s.data = s.data[:len(s.data)-1]
 	return nil
 }
 

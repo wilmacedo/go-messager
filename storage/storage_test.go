@@ -11,16 +11,36 @@ func TestPushAndFetch(t *testing.T) {
 
 	err := s.Push(data)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	fetchedData, err := s.Fetch(0)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	if !reflect.DeepEqual(fetchedData, data) {
-		t.Error("fetched data not match with pushed data")
+		t.Fatal("fetched data not match with pushed data")
+	}
+}
+
+func TestPushAndPop(t *testing.T) {
+	s := NewMemoryStorage()
+	data := []byte("data")
+
+	err := s.Push(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = s.Pop()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	_, err = s.Fetch(1)
+	if err == nil {
+		t.Fatal("fetched data is need be nil")
 	}
 }
 
@@ -29,11 +49,11 @@ func TestFetchEmpty(t *testing.T) {
 
 	data, err := s.Fetch(0)
 	if err == nil {
-		t.Error("should produce error")
+		t.Fatal("should produce error")
 	}
 
 	if data != nil {
-		t.Error("should produce nil data")
+		t.Fatal("should produce nil data")
 	}
 }
 
@@ -42,15 +62,15 @@ func TestOutrangeOffset(t *testing.T) {
 
 	err := s.Push([]byte("data"))
 	if err != nil {
-		t.Error("should not produce error")
+		t.Fatal("should not produce error")
 	}
 
 	data, err := s.Fetch(1)
 	if err == nil {
-		t.Error("should produce error")
+		t.Fatal("should produce error")
 	}
 
 	if data != nil {
-		t.Error("should produce nil data")
+		t.Fatal("should produce nil data")
 	}
 }

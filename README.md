@@ -14,7 +14,6 @@ To run the application, simple run the following command:
 * Multi-Thread for each producer/consumer with concurrency
 * Fast consumer message serialization
 
-## Protocols
-
-- [x] HTTP
-- [ ] TPC
+## Roadmap
+- [ ] Authentication to publish/commit and listen
+- [ ] Distributed Storage

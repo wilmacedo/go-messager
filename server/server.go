@@ -3,6 +3,8 @@ package server
 import (
 	"fmt"
 	"log/slog"
+	"sync"
+	"time"
 
 	"github.com/wilmacedo/go-messager/storage"
 	"github.com/wilmacedo/go-messager/transport"
@@ -75,9 +77,8 @@ func (s *Server) loop() {
 		select {
 		case message := <-s.message:
 			if err := s.publish(message); err != nil {
-				slog.Error("failed to publish topic", err)
-			} else {
-				slog.Info("new message produced")
+				slog.Error("failed to publish message to topic", err)
+				continue
 			}
 		case peer := <-s.peer:
 			slog.Info("new peer connected")
@@ -101,7 +102,31 @@ func (s *Server) GetStoreByTopic(topic string) storage.Storage {
 func (s *Server) publish(message transport.Message) error {
 	store := s.GetStoreByTopic(message.Topic)
 
-	return store.Push(message.Data)
+	if err := store.Push(message.Data); err != nil {
+		return err
+	}
+
+	start := time.Now()
+	var wg sync.WaitGroup
+	for _, peer := range s.conns {
+		wg.Add(1)
+
+		go func(msg transport.Message, p transport.Peer) {
+			// TODO: Add retry strategy
+			if err := p.Send(msg.Data); err != nil {
+				slog.Error("failed to send message to peer", "peer", p.GetID())
+			}
+
+			wg.Done()
+		}(message, peer)
+	}
+
+	wg.Wait()
+	s.ProducerFunc().Pop()
+
+	slog.Info("message sended to peers", "took", time.Since(start))
+
+	return nil
 }
 
 func (s *Server) GetTopics() map[string]storage.Storage {
@@ -115,25 +140,12 @@ func (s *Server) RemovePeer(p transport.Peer) error {
 
 	delete(s.conns, p.GetID())
 
-	fmt.Println(s.conns)
-
 	return nil
 }
 
 func (s *Server) AddPeerToTopic(p transport.Peer, topics []string) error {
 	for _, topic := range topics {
-		store := s.GetStoreByTopic(topic)
-
-		size := store.Size()
-		for i := 0; i < size; i++ {
-			b, err := store.Fetch(uint(i))
-			if err != nil {
-				slog.Error("offset not founded in topic store", "offset", i)
-				continue
-			}
-
-			fmt.Println(string(b))
-		}
+		s.GetStoreByTopic(topic)
 	}
 
 	slog.Info("adding new peer to", "topics", topics)

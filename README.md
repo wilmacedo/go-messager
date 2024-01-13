@@ -29,11 +29,12 @@ curl -X POST http://localhost:3000/publish/topic --data-binary 'any data'
 
 ## Features
 * RWMutex to ensure the safety concurrency
-* Multi-Thread for each producer/consumer with concurrency
-* Fast consumer message serialization
+* Concurrency to speed data communication for each consumer
+* Fast message serialization with [sonic](https://github.com/bytedance/sonic)
 * Up to $62^{62}$ consumers at same time
 
 ## Roadmap
+- [ ] Benchmark for performance at high concurrency
 - [ ] Authentication to publish/commit and listen
 - [ ] Distributed Storage
 - [ ] Multiple instance of same application (nodes)

@@ -38,3 +38,6 @@ curl -X POST http://localhost:3000/publish/topic --data-binary 'any data'
 - [ ] Authentication to publish/commit and listen
 - [ ] Distributed Storage
 - [ ] Multiple instance of same application (nodes)
+
+## Project Design
+![Project Design](https://wilmacedo.com/go-messager-arch.png)
